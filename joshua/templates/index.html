@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <h1>Real-Time Sensor Dashboard</h1>
+
+    <!-- Temperature Chart -->
+    <h2>Temperature (Raw vs Filtered)</h2>
+    <canvas id="temperatureChart" width="800" height="400"></canvas>
+    
+    <!-- Soil Moisture Chart -->
+    <h2>Soil Moisture (Raw vs Filtered)</h2>
+    <canvas id="soilMoistureChart" width="800" height="400"></canvas>
+
+    <script>
+        // Temperature Chart
+        const ctxTemp = document.getElementById('temperatureChart').getContext('2d');
+        const temperatureChart = new Chart(ctxTemp, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Raw Temperature (°C)',
+                        borderColor: 'rgb(255, 99, 132)',
+                        data: [],
+                        fill: false,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Filtered Temperature (°C)',
+                        borderColor: 'rgb(54, 162, 235)',
+                        data: [],
+                        fill: false,
+                        tension: 0.1
+                    }
+                ]
+            }
+        });
+
+        // Soil Moisture Chart
+        const ctxSoil = document.getElementById('soilMoistureChart').getContext('2d');
+        const soilMoistureChart = new Chart(ctxSoil, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [
+                    {
+                        label: 'Raw Soil Moisture',
+                        borderColor: 'rgb(75, 192, 192)',
+                        data: [],
+                        fill: false,
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Filtered Soil Moisture',
+                        borderColor: 'rgb(255, 159, 64)',
+                        data: [],
+                        fill: false,
+                        tension: 0.1
+                    }
+                ]
+            }
+        });
+
+        // Fetch data every 1 second
+        async function fetchData() {
+            const response = await fetch('/data');
+            const data = await response.json();
+
+            // Update Temperature Chart
+            temperatureChart.data.labels = data.timestamps;
+            temperatureChart.data.datasets[0].data = data.temperature_raw;  // Raw temperature
+            temperatureChart.data.datasets[1].data = data.temperature;      // Filtered temperature
+
+            // Update Soil Moisture Chart
+            soilMoistureChart.data.labels = data.timestamps;
+            soilMoistureChart.data.datasets[0].data = data.soil_moisture_raw;  // Raw soil moisture
+            soilMoistureChart.data.datasets[1].data = data.soil_moisture;      // Filtered soil moisture
+
+            // Update Charts
+            temperatureChart.update();
+            soilMoistureChart.update();
+        }
+
+        setInterval(fetchData, 1000);
+    </script>
+</body>
+</html>
